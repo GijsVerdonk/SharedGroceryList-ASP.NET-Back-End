@@ -93,7 +93,6 @@ namespace SharedGroceryListAPI.Controllers
 
             try
             {
-                // Map DTO to entity model
                 var userList = new UserList
                 {
                     UserId = userListDto.UserId,
@@ -101,26 +100,17 @@ namespace SharedGroceryListAPI.Controllers
                     IsActive = userListDto.IsActive,
                     IsCreator = userListDto.IsCreator
                 };
-
-                // Add UserList to DbContext
+                
                 _context.UserLists.Add(userList);
-
-                // Save changes to persist the new UserList
+                
                 await _context.SaveChangesAsync();
-
-                // Return the created UserList
+                
                 return userList;
             }
             catch (Exception ex)
             {
-                // Log or handle any errors
                 return StatusCode(500, "Internal server error");
             }
-        }
-
-        private bool UserListExists(int id)
-        {
-            return (_context.UserLists?.Any(e => e.UserId == id)).GetValueOrDefault();
         }
     }
 }

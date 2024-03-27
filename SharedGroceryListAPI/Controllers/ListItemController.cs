@@ -82,7 +82,6 @@ namespace SharedGroceryListAPI.Controllers
 
             try
             {
-                // Map DTO to entity model
                 var listItem = new ListItem
                 {
                     ListId = listItemDto.ListId,
@@ -90,19 +89,15 @@ namespace SharedGroceryListAPI.Controllers
                     Quantity = listItemDto.Quantity,
                     IsActive = listItemDto.IsActive
                 };
-
-                // Add UserList to DbContext
+                
                 _context.ListItems.Add(listItem);
 
-                // Save changes to persist the new UserList
                 await _context.SaveChangesAsync();
-
-                // Return the created UserList
+                
                 return listItem;
             }
             catch (Exception ex)
             {
-                // Log or handle any errors
                 return StatusCode(500, "Internal server error");
             }
         }

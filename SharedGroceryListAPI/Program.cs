@@ -1,10 +1,25 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MySqlConnector;
 using SharedGroceryListAPI.Context;
+using SharedGroceryListAPI.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 var Configuration = builder.Configuration;
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.Authority = "https://dev-1qptdla0pgqbqxfn.us.auth0.com/";
+    options.Audience = "https://dev-1qptdla0pgqbqxfn.us.auth0.com/userinfo";
+});
+
+builder.Services.AddMvc();
 
 builder.Services.AddCors(options =>
 {
@@ -44,6 +59,7 @@ builder.Services.AddDbContext<DBContext_SGL>(options => options.UseMySql(configu
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 var app = builder.Build();
 
