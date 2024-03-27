@@ -23,6 +23,7 @@ namespace SharedGroceryListAPI.Controllers
             _context = context;
         }
         
+        
         // GET: api/Lists
         [HttpGet("Lists")]
         public async Task<ActionResult<IEnumerable<String>>> GetLists()
@@ -53,14 +54,28 @@ namespace SharedGroceryListAPI.Controllers
         }
 
         // GET: api/UserControlleer
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        [HttpGet("All")]
+        public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
           if (_context.Users == null)
           {
               return NotFound();
           }
             return await _context.Users.ToListAsync();
+        }
+        
+        // GET: api/UserControlleer
+        [HttpGet]
+        public async Task<ActionResult<User>> GetUser()
+        {
+            string userSub = User.FindFirst(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value;
+            var searchedUser = await _context.Users.FirstOrDefaultAsync(u => u.Sub == userSub);
+
+            if (searchedUser == null)
+            {
+                return NotFound();
+            }
+            return searchedUser;
         }
 
         // GET: api/UserControlleer/5
