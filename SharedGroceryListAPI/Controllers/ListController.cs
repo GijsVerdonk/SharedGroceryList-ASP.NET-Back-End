@@ -86,14 +86,32 @@ namespace SharedGroceryListAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<List>> PostList(List list)
         {
+            string userSub = User.FindFirst(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value;
+            
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Sub == userSub);
+            
           if (_context.Lists == null)
           {
               return Problem("Entity set 'DBContext_SGL.Lists'  is null.");
           }
-            _context.Lists.Add(list);
+            
+          _context.Lists.Add(list);
+          await _context.SaveChangesAsync();
+          
+            var userList = new UserList
+            {
+                UserId = user.Id,
+                ListId = list.Id,
+                IsActive = true,
+                IsCreator = true
+            };
+            
+           
+            _context.UserLists.Add(userList);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetList", new { id = list.Id }, list);
+            return NoContent();
+            // return CreatedAtAction("GetList", new { id = list.Id }, list);
         }
 
         // DELETE: api/List/5

@@ -25,15 +25,16 @@ namespace SharedGroceryListAPI.Controllers
         
         // GET: api/Lists
         [HttpGet("Lists")]
-        public async Task<List<string?>> GetLists()
+        public async Task<ActionResult<IEnumerable<String>>> GetLists()
         {
-            //TODO: nog afmaken!
             string userSub = User.FindFirst(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value;
-            // Console.WriteLine($"userId is: {userSub}");
             
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Sub == userSub);
-            var userLists = await _context.UserLists.Where(ul => ul.UserId == user.Id).ToListAsync();
-            // var lists = await _context.Lists.Where(l=>l.Id == )
+
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
             
             var listNames = await _context.UserLists
                 .Where(ul => ul.UserId == user.Id)
@@ -42,6 +43,11 @@ namespace SharedGroceryListAPI.Controllers
                     l => l.Id,
                     (ul, l) => l.Name)
                 .ToListAsync();
+
+            if (listNames == null || user == null)
+            {
+                return NotFound();
+            }
             
             return listNames;
         }
