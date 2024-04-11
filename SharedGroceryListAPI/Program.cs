@@ -20,14 +20,6 @@ builder.Services.AddAuthentication(options =>
     options.Audience = "https://dev-1qptdla0pgqbqxfn.us.auth0.com/userinfo";
 });
 
-var frikandel = 3 + 3;
-
-if (frikandel == 6)
-{
-    Console.WriteLine("TEST.");
-}
-
-
 builder.Services.AddMvc();
 
 builder.Services.AddCors(options =>
