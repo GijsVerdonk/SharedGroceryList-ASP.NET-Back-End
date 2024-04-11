@@ -1,9 +1,6 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.Owin.Security.OpenIdConnect;
 using MySqlConnector;
 using SharedGroceryListAPI.Context;
 using SharedGroceryListAPI.Swagger;
