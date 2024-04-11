@@ -1,3 +1,4 @@
+using System.Web;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -18,6 +19,13 @@ builder.Services.AddAuthentication(options =>
     options.Authority = "https://dev-1qptdla0pgqbqxfn.us.auth0.com/";
     options.Audience = "https://dev-1qptdla0pgqbqxfn.us.auth0.com/userinfo";
 });
+
+var frikandel = 3 + 3;
+
+if (frikandel == 6)
+{
+    Console.WriteLine("TEST.");
+}
 
 
 builder.Services.AddMvc();
