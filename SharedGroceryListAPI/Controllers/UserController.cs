@@ -13,7 +13,7 @@ namespace SharedGroceryListAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    // [Authorize]
     public class UserController : ControllerBase
     {
         private readonly DBContext_SGL _context;
@@ -23,6 +23,18 @@ namespace SharedGroceryListAPI.Controllers
             _context = context;
         }
         
+        [HttpGet("GetAuth0Id")]
+        public IActionResult Test()
+        {
+            UserSevice userSevice = new UserSevice();
+            string accessToken = Request.Cookies["accessToken"];
+
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                return Ok(userSevice.GetAuth0IdFromCookie(accessToken));
+            }
+            return Ok("Access token not found in cookie.");
+        }
         
         // GET: api/Lists
         [HttpGet("Lists")]
