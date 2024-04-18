@@ -24,7 +24,7 @@ namespace SharedGroceryListAPI.Controllers
             _context = context;
         }
         
-        [HttpGet("GetToken")]
+        [HttpGet("GetCookie")]
         public IActionResult Get()
         {
             var cookieOptions = new CookieOptions(); 
