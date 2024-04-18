@@ -48,3 +48,6 @@ jobs:
           push: true
           tags: gijsver/sharedgrocerylist-back-end:latest
           platforms: linux/amd64
+      - name: Deploy on Render (hosting platform)
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_URL }}
+
