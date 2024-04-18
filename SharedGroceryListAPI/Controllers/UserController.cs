@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Net.Http.Headers;
 using SharedGroceryListAPI.Context;
 using SharedGroceryListAPI.Models;
 
@@ -21,6 +22,23 @@ namespace SharedGroceryListAPI.Controllers
         public UserController(DBContext_SGL context)
         {
             _context = context;
+        }
+        
+        [HttpGet("GetToken")]
+        public IActionResult Get()
+        {
+            var cookieOptions = new CookieOptions(); 
+            
+
+            cookieOptions.Expires = DateTime.Now.AddDays(1);
+            cookieOptions.Path = "/";
+            cookieOptions.HttpOnly = true;
+            cookieOptions.Secure = true;
+
+            Response.Cookies.Append("TestToken", "ABC", cookieOptions);
+
+            return Ok("nice");
+
         }
         
         [HttpGet("GetAuth0Id")]
