@@ -25,7 +25,6 @@ namespace SharedGroceryListAPI.Controllers
         [HttpPost("{listId}/Items/{quantity}")]
         public async Task<ActionResult<List>> PostItemToList(int listId, Item item, string quantity)
         {
-            //TODO: add security that the list belongs to the user.
             var userSubClaim = User.FindFirst(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
 
             if (userSubClaim == null)
@@ -47,6 +46,15 @@ namespace SharedGroceryListAPI.Controllers
             if (list == null)
             {
                 return Problem("List not found.");
+            }
+
+            var userList = await _context.UserLists.Where(ul => ul.ListId == listId)
+                .Where(ul => ul.UserId == user.Id)
+                .FirstOrDefaultAsync();
+            
+            if (userList == null)
+            {
+                return Problem("List does not belong to logged in user.");
             }
 
             item.IsActive = true;
