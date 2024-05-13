@@ -22,6 +22,24 @@ namespace SharedGroceryListAPI.Controllers
             _context = context;
         }
         
+        // GET: api/List/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<List>> GetList(int id)
+        {
+            if (_context.Lists == null)
+            {
+                return NotFound();
+            }
+            var list = await _context.Lists.FindAsync(id);
+
+            if (list == null)
+            {
+                return NotFound();
+            }
+
+            return list;
+        }
+        
         [HttpPost("{listId}/Items/{quantity}")]
         public async Task<ActionResult<List>> PostItemToList(int listId, Item item, string quantity)
         {
