@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Build.Execution;
 using Microsoft.EntityFrameworkCore;
 using SharedGroceryListAPI.Context;
 using SharedGroceryListAPI.Models;
@@ -20,63 +21,102 @@ namespace SharedGroceryListAPI.Controllers
         {
             _context = context;
         }
-
-        // GET: api/List
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<List>>> GetLists()
+        
+        [HttpPost("{listId}/Items/{quantity}")]
+        public async Task<ActionResult<List>> PostItemToList(int listId, Item item, string quantity)
         {
-          if (_context.Lists == null)
-          {
-              return NotFound();
-          }
-            return await _context.Lists.ToListAsync();
+            //TODO: add security that the list belongs to the user.
+            var userSubClaim = User.FindFirst(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+
+            if (userSubClaim == null)
+            {
+                Problem("User is not logged in.");
+            }
+
+            string userSub = userSubClaim.Value;
+            
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Sub == userSub);
+
+            if (user == null)
+            {
+                return Problem("User does not exists.");
+            }
+
+            var list = await _context.Lists.FirstOrDefaultAsync(l=>l.Id == listId);
+
+            if (list == null)
+            {
+                return Problem("List not found.");
+            }
+
+            item.IsActive = true;
+            _context.Items.Add(item);
+            await _context.SaveChangesAsync();
+            
+            var listItem = new ListItem()
+            {
+                ListId = list.Id,
+                ItemId = item.Id,
+                Quantity = quantity,
+                IsActive = true
+            };
+            
+            _context.ListItems.Add(listItem);
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
-
-        // GET: api/List/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<List>> GetList(int id)
+        
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteList(int id)
         {
-          if (_context.Lists == null)
-          {
-              return NotFound();
-          }
             var list = await _context.Lists.FindAsync(id);
-
+            
             if (list == null)
             {
                 return NotFound();
             }
 
-            return list;
-        }
-
-        // PUT: api/List/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutList(int id, List list)
-        {
-            if (id != list.Id)
-            {
-                return BadRequest();
-            }
-
+            list.IsActive = false;
             _context.Entry(list).State = EntityState.Modified;
 
-            try
+            var userLists = await _context.UserLists.Where(ul => ul.ListId == id).ToListAsync();
+
+            if (userLists.Count > 0)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ListExists(id))
+                foreach (var userList in userLists)
                 {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
+                    userList.IsActive = false;
+                    _context.Entry(userList).State = EntityState.Modified;
                 }
             }
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+        
+        [HttpDelete("{listId}/Items/{itemId}")]
+        public async Task<IActionResult> DeleteItemFromList(int listId, int itemId)
+        {
+            var list = await _context.Lists.FindAsync(listId);
+            
+            if (list == null)
+            {
+                return NotFound();
+            }
+
+            var listItem = await _context.ListItems.FirstOrDefaultAsync(li => li.ItemId == itemId);
+
+            if (listItem == null)
+            {
+                return Problem("Item not connected to the list.");
+            }
+            
+            listItem.IsActive = false;
+            
+            _context.Entry(listItem).State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -94,7 +134,8 @@ namespace SharedGroceryListAPI.Controllers
           {
               return Problem("Entity set 'DBContext_SGL.Lists'  is null.");
           }
-            
+
+          list.IsActive = true;  
           _context.Lists.Add(list);
           await _context.SaveChangesAsync();
           
@@ -111,32 +152,26 @@ namespace SharedGroceryListAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
-            // return CreatedAtAction("GetList", new { id = list.Id }, list);
         }
-
-        // DELETE: api/List/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteList(int id)
+        
+        // GET: api/UserControlleer
+        [HttpGet("{listId}/Items")]
+        public async Task<ActionResult<List<Item>>> GetListItems(int listId)
         {
-            if (_context.Lists == null)
-            {
-                return NotFound();
-            }
-            var list = await _context.Lists.FindAsync(id);
+            var list = await _context.Lists.FirstOrDefaultAsync(l => l.Id == listId);
+
             if (list == null)
             {
-                return NotFound();
+                return Problem("List not found.");
             }
 
-            _context.Lists.Remove(list);
-            await _context.SaveChangesAsync();
+            var listItems = await _context.ListItems
+                .Where(li => li.ListId == listId)
+                .Where(li=>li.IsActive == true)
+                .Select(li => li.Item)
+                .ToListAsync();
 
-            return NoContent();
-        }
-
-        private bool ListExists(int id)
-        {
-            return (_context.Lists?.Any(e => e.Id == id)).GetValueOrDefault();
+            return listItems;
         }
     }
 }

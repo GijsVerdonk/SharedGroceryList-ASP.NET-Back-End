@@ -12,7 +12,7 @@ using SharedGroceryListAPI.Models;
 
 namespace SharedGroceryListAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     // [Authorize]
     public class UserController : ControllerBase
@@ -24,38 +24,8 @@ namespace SharedGroceryListAPI.Controllers
             _context = context;
         }
         
-        [HttpGet("GetCookie")]
-        public IActionResult Get()
-        {
-            var cookieOptions = new CookieOptions(); 
-            
-
-            cookieOptions.Expires = DateTime.Now.AddDays(1);
-            cookieOptions.Path = "/";
-            cookieOptions.HttpOnly = true;
-            cookieOptions.Secure = true;
-
-            Response.Cookies.Append("TestToken", "ABC", cookieOptions);
-
-            return Ok("nice");
-
-        }
-        
-        [HttpGet("GetAuth0Id")]
-        public IActionResult Test()
-        {
-            UserSevice userSevice = new UserSevice();
-            string accessToken = Request.Cookies["accessToken"];
-
-            if (!string.IsNullOrEmpty(accessToken))
-            {
-                return Ok(userSevice.GetAuth0IdFromCookie(accessToken));
-            }
-            return Ok("Access token not found in cookie.");
-        }
-        
         // GET: api/Lists
-        [HttpGet("Lists")]
+        [HttpGet("User/Lists")]
         public async Task<ActionResult<IEnumerable<List>>> GetLists()
         {
             string userSub = User.FindFirst(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value;
@@ -84,7 +54,7 @@ namespace SharedGroceryListAPI.Controllers
         }
 
         // GET: api/UserControlleer
-        [HttpGet("All")]
+        [HttpGet("Users")]
         public async Task<ActionResult<IEnumerable<User>>> GetAllUsers()
         {
           if (_context.Users == null)
@@ -95,7 +65,7 @@ namespace SharedGroceryListAPI.Controllers
         }
         
         // GET: api/UserControlleer
-        [HttpGet]
+        [HttpGet("User")]
         public async Task<ActionResult<User>> GetUser()
         {
             string userSub = User.FindFirst(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value;
@@ -108,58 +78,9 @@ namespace SharedGroceryListAPI.Controllers
             return searchedUser;
         }
 
-        // GET: api/UserControlleer/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
-        {
-          if (_context.Users == null)
-          {
-              return NotFound();
-          }
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
-        }
-
-        // PUT: api/UserControlleer/5
+       // POST: api/UserControlleer
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
-        {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/UserControlleer
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
+        [HttpPost("User")]
         public async Task<ActionResult<User>> PostUser(User user)
         {
             string userSub = User.FindFirst(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier").Value;
@@ -174,31 +95,6 @@ namespace SharedGroceryListAPI.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
-        }
-
-        // DELETE: api/UserControlleer/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            if (_context.Users == null)
-            {
-                return NotFound();
-            }
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UserExists(int id)
-        {
-            return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }
