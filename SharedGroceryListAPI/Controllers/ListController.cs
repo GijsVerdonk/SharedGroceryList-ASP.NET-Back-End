@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Build.Execution;
 using Microsoft.EntityFrameworkCore;
 using SharedGroceryListAPI.Context;
+using SharedGroceryListAPI.Dtos;
 using SharedGroceryListAPI.Models;
 
 namespace SharedGroceryListAPI.Controllers
@@ -182,7 +183,7 @@ namespace SharedGroceryListAPI.Controllers
         
         // GET: api/UserControlleer
         [HttpGet("{listId}/Items")]
-        public async Task<ActionResult<List<Item>>> GetListItems(int listId)
+        public async Task<ActionResult<List<ListItemDto>>> GetListItems(int listId)
         {
             var list = await _context.Lists.FirstOrDefaultAsync(l => l.Id == listId);
 
@@ -192,12 +193,30 @@ namespace SharedGroceryListAPI.Controllers
             }
 
             var listItems = await _context.ListItems
-                .Where(li => li.ListId == listId)
-                .Where(li=>li.IsActive == true)
-                .Select(li => li.Item)
+                .Where(li => li.ListId == listId && li.IsActive == true)
+                .Select(li => new 
+                {
+                    Item = li.Item,
+                    Quantity = li.Quantity // Assuming Quantity is the field in the ListItem table
+                })
                 .ToListAsync();
 
-            return listItems;
+            
+            List<ListItemDto> listItemsDtos = new List<ListItemDto>();
+            foreach (var listItem in listItems)
+            {
+                ListItemDto listItemDto = new ListItemDto()
+                {
+                    Item = listItem.Item,
+                    ListId = listId,
+                    ItemId = listItem.Item.Id,
+                    Quantity = listItem.Quantity
+                };
+                
+                listItemsDtos.Add(listItemDto);
+            }
+
+            return listItemsDtos;
         }
     }
 }

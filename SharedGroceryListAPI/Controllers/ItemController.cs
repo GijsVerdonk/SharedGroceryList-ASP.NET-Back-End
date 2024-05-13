@@ -11,7 +11,6 @@ using SharedGroceryListAPI.Models;
 
 namespace SharedGroceryListAPI.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ItemController : ControllerBase

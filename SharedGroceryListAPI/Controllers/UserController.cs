@@ -39,6 +39,7 @@ namespace SharedGroceryListAPI.Controllers
             
             var listData = await _context.UserLists
                 .Where(ul => ul.UserId == user.Id)
+                .Where(ul => ul.IsActive == true)
                 .Join(_context.Lists,
                     ul => ul.ListId,
                     l => l.Id,
