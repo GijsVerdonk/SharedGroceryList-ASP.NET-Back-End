@@ -23,6 +23,38 @@ namespace SharedGroceryListAPI.Controllers
             _context = context;
         }
         
+        [HttpPut("NewCode/{id}")]
+        public async Task<IActionResult> GenerateNewListCode(int id)
+        {
+            var existingList = await _context.Lists.FindAsync(id);
+            if (existingList == null)
+            {
+                return NotFound("List not found.");
+            }
+
+            string GenerateRandomCode()
+            {
+                Random random = new Random();
+                var randomCode = random.Next(100000, 1000000).ToString();
+
+                while (_context.Lists.Where(l => l.Code == randomCode).Any())
+                {
+                    randomCode = random.Next(100000, 1000000).ToString();
+                }
+
+                return randomCode;
+            }
+            
+            existingList.Code = GenerateRandomCode();
+            existingList.CodeActiveSince = DateTime.Now;
+            
+            _context.Entry(existingList).State = EntityState.Modified;
+            
+            await _context.SaveChangesAsync();
+           
+            return Ok($"Succces, new code: {existingList.Code}");
+        }
+        
         // GET: api/List/5
         [HttpGet("{id}")]
         public async Task<ActionResult<List>> GetList(int id)
