@@ -27,17 +27,45 @@ namespace SharedGroceryListAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<List>> GetList(int id)
         {
+            var userSubClaim = User.FindFirst(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+
+            if (userSubClaim == null)
+            {
+                Problem("User is not logged in.");
+            }
+
+            string userSub = userSubClaim.Value;
+            
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Sub == userSub);
+
+            if (user == null)
+            {
+                return Problem("User does not exists.");
+            }
+            
+            
             if (_context.Lists == null)
             {
                 return NotFound();
             }
-            var list = await _context.Lists.FindAsync(id);
+
+            var list = await _context.Lists.FirstOrDefaultAsync(l => l.Id == id && l.IsActive == true);
+
+            if (list != null)
+            {
+                var userLists = await _context.UserLists.CountAsync(ul => ul.UserId == user.Id && ul.ListId == id);
+                
+                if (userLists == 0)
+                {
+                    return NotFound(); //List is van een andere gebruiker.
+                }
+            }
 
             if (list == null)
             {
                 return NotFound();
             }
-
+            
             return list;
         }
         
