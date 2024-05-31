@@ -23,7 +23,7 @@ namespace SharedGroceryListAPI.Controllers
             _context = context;
         }
         
-        [HttpPut("NewCode/{id}")]
+        [HttpPut("NewCode2/{id}")]
         public async Task<IActionResult> GenerateNewListCode(int id)
         {
             var existingList = await _context.Lists.FindAsync(id);
